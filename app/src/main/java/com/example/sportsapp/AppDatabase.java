@@ -14,12 +14,14 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract LeagueDao leagueDao();
     public abstract ClubDao clubDao();
 
-    public static synchronized AppDatabase getInstance(Context context) {
+    public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
-            INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            AppDatabase.class, "sports_db")
-                    .fallbackToDestructiveMigration()
-                    .build();
+            synchronized (AppDatabase.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+                                    AppDatabase.class, "sports_db").fallbackToDestructiveMigration().build();
+                }
+            }
         }
         return INSTANCE;
     }

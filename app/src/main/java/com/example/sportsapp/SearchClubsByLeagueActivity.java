@@ -47,6 +47,7 @@ public class SearchClubsByLeagueActivity extends AppCompatActivity {
         clubsContainer = findViewById(R.id.clubsContainer);
         Button retrieveClubsBtn = findViewById(R.id.searchButton);
         Button saveToDbButton = findViewById(R.id.saveToDbButton);
+        db = AppDatabase.getInstance(getApplicationContext());
 
         // Initialize Volley request queue
         requestQueue = Volley.newRequestQueue(this);
@@ -164,11 +165,15 @@ public class SearchClubsByLeagueActivity extends AppCompatActivity {
     private void saveClubsToDatabase(List<Club> clubs) {
         new Thread(() -> {
             try {
-                db.clubDao().insertClubs(clubs);
-                runOnUiThread(() -> Toast.makeText(this, "Clubs saved to database!", Toast.LENGTH_SHORT).show());
+                if (db != null) {
+                    db.clubDao().insertClubs(clubs); // Ensure db is not null
+                    runOnUiThread(() -> Toast.makeText(this, "Clubs saved to database successfully!", Toast.LENGTH_SHORT).show());
+                } else {
+                    runOnUiThread(() -> Toast.makeText(this, "Database instance is null.", Toast.LENGTH_SHORT).show());
+                }
             } catch (Exception e) {
-                Log.e("DB_ERROR", "Error saving clubs to database", e);
-                runOnUiThread(() -> Toast.makeText(this, "Error saving clubs to database", Toast.LENGTH_SHORT).show());
+                Log.e("DB_ERROR", "Error saving clubs: " + e.getMessage(), e);
+                runOnUiThread(() -> Toast.makeText(this, "Error saving to database: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         }).start();
     }

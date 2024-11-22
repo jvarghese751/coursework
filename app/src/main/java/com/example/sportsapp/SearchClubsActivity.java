@@ -1,6 +1,7 @@
 package com.example.sportsapp;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
@@ -32,9 +33,9 @@ public class SearchClubsActivity extends AppCompatActivity {
         db = AppDatabase.getInstance(getApplicationContext());
 
         searchButton.setOnClickListener(v -> {
-            String query = searchInput.getText().toString().trim();
-            if (!query.isEmpty()) {
-                searchClubs(query);
+            String searchQuery = searchInput.getText().toString().trim();
+            if (!searchQuery.isEmpty()) {
+                searchClubs(searchQuery); // Call the method to search clubs
             } else {
                 Toast.makeText(this, "Please enter a search term", Toast.LENGTH_SHORT).show();
             }
@@ -43,14 +44,22 @@ public class SearchClubsActivity extends AppCompatActivity {
 
     private void searchClubs(String query) {
         new Thread(() -> {
-            List<Club> clubs = db.clubDao().searchClubs("%" + query + "%");
-            runOnUiThread(() -> {
-                if (clubs.isEmpty()) {
-                    Toast.makeText(this, "No clubs found", Toast.LENGTH_SHORT).show();
-                } else {
-                    recyclerView.setAdapter(new ClubAdapter(clubs));
-                }
-            });
+            try {
+                String wildcardQuery = "%" + query + "%"; // Use wildcards for SQL LIKE
+                List<Club> clubs = db.clubDao().searchClubs(wildcardQuery); // Fetch results from the database
+
+                runOnUiThread(() -> {
+                    if (clubs != null && !clubs.isEmpty()) {
+                        recyclerView.setAdapter(new ClubAdapter(clubs)); // Populate RecyclerView with results
+                        Toast.makeText(this, "Found " + clubs.size() + " clubs.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "No clubs found matching the search query.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                Log.e("DB_ERROR", "Error searching clubs", e);
+                runOnUiThread(() -> Toast.makeText(this, "Error searching for clubs.", Toast.LENGTH_SHORT).show());
+            }
         }).start();
     }
 }

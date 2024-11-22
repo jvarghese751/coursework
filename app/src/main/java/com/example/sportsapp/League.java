@@ -8,16 +8,18 @@ import androidx.room.PrimaryKey;
 public class League {
     @PrimaryKey
     @NonNull
-    public String idLeague;
+    public String id; // Unique ID for the league
 
-    public String strLeague;
-    public String strSport;
-    public String strLeagueAlternate;
+    public String name; // Name of the league
+    public String sport; // Type of sport
+    public String shortName; // Alternate or short name of the league
+    public String strLogo; // URL of the league logo
 
-    public League(String idLeague, String strLeague, String strSport, String strLeagueAlternate) {
-        this.idLeague = idLeague;
-        this.strLeague = strLeague;
-        this.strSport = strSport;
-        this.strLeagueAlternate = strLeagueAlternate;
+    public League(@NonNull String id, String name, String sport, String shortName, String strLogo) {
+        this.id = id;
+        this.name = name;
+        this.sport = sport;
+        this.shortName = shortName;
+        this.strLogo = strLogo;
     }
 }

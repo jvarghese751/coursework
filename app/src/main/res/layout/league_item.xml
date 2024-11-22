@@ -5,15 +5,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Sport Type -->
+
     <ImageView
         android:id="@+id/logoImageView"
-        android:layout_width="127dp"
+        android:layout_width="101dp"
         android:layout_height="0dp"
-        android:layout_marginTop="154dp"
-        android:layout_marginBottom="26dp"
+        android:layout_marginTop="67dp"
+        android:layout_marginBottom="44dp"
         android:scaleType="centerCrop"
         android:src="@drawable/placeholder_image"
-        app:layout_constraintBottom_toTopOf="@+id/leagueTextView"
+        app:layout_constraintBottom_toTopOf="@+id/nameTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -22,26 +24,25 @@
         android:id="@+id/nameTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="18dp"
-        android:layout_marginBottom="364dp"
-        android:text="Club Name"
-        android:textSize="18sp"
+        android:layout_marginBottom="37dp"
+        android:text="League Name"
+        android:textSize="16sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/logoImageView"
-        app:layout_constraintTop_toBottomOf="@+id/leagueTextView" />
+        app:layout_constraintBottom_toTopOf="@+id/sportTextView"
+        app:layout_constraintEnd_toEndOf="@+id/logoImageView"
+        app:layout_constraintTop_toBottomOf="@+id/logoImageView" />
 
     <TextView
-        android:id="@+id/leagueTextView"
+        android:id="@+id/sportTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="2dp"
-        android:layout_marginBottom="26dp"
-        android:text="League Name"
+        android:layout_marginStart="14dp"
+        android:layout_marginBottom="454dp"
+        android:text="Sport Type"
         android:textColor="@android:color/darker_gray"
         android:textSize="14sp"
-        app:layout_constraintBottom_toTopOf="@+id/nameTextView"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@+id/nameTextView"
-        app:layout_constraintTop_toBottomOf="@+id/logoImageView" />
+        app:layout_constraintTop_toBottomOf="@+id/nameTextView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

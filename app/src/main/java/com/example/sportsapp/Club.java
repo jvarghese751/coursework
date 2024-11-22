@@ -11,14 +11,13 @@ public class Club {
     public String id; // Unique ID for the club
 
     public String name; // Name of the club
-    public String strLeague; // League name
-    public String logoUrl; // Logo URL of the club
+    public String strLeague; // League name the club belongs to
+    public String strLogo; // URL of the club's logo
 
-    // Constructor
-    public Club(@NonNull String id, String name, String strLeague, String logoUrl) {
+    public Club(@NonNull String id, String name, String strLeague, String strLogo) {
         this.id = id;
         this.name = name;
         this.strLeague = strLeague;
-        this.logoUrl = logoUrl;
+        this.strLogo = strLogo;
     }
 }

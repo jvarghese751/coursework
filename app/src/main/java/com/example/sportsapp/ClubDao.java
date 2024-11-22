@@ -9,9 +9,12 @@ import java.util.List;
 
 @Dao
 public interface ClubDao {
-    @Query("SELECT * FROM clubs WHERE name LIKE :query COLLATE NOCASE OR strLeague LIKE :query COLLATE NOCASE")
-    List<Club> searchClubs(String query);
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertClubs(List<Club> clubs);
+
+    @Query("SELECT * FROM clubs")
+    List<Club> getAllClubs();
+
+    @Query("SELECT * FROM clubs WHERE name LIKE :query OR strLeague LIKE :query")
+    List<Club> searchClubs(String query);
 }

@@ -20,10 +20,7 @@ public class AddLeaguesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_leagues);
 
-        // Initialize Room database
-        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "sports_db")
-                .fallbackToDestructiveMigration() // Optional: Clears DB if schema changes
-                .build();
+        db = AppDatabase.getInstance(getApplicationContext());
 
         Button addLeaguesToDbBtn = findViewById(R.id.addLeaguesToDbBtn);
 
@@ -35,19 +32,22 @@ public class AddLeaguesActivity extends AppCompatActivity {
             try {
                 // Define leagues
                 List<League> leagues = Arrays.asList(
-                        new League("4330", "Scottish Premier League", "Soccer", "SPFL"),
-                        new League("4331", "German Bundesliga", "Soccer", "Bundesliga"),
-                        new League("4332", "Italian Serie A", "Soccer", "Serie A"),
-                        new League("4334", "French Ligue 1", "Soccer", "Ligue 1 Conforama"),
-                        new League("4335", "Spanish La Liga", "Soccer", "La Liga")
+                        new League("4330", "Scottish Premier League", "Soccer", "SPFL", "https://example.com/scottish.png"),
+                        new League("4331", "German Bundesliga", "Soccer", "Bundesliga", "https://example.com/bundesliga.png"),
+                        new League("4332", "Italian Serie A", "Soccer", "Serie A", "https://example.com/seriea.png"),
+                        new League("4334", "French Ligue 1", "Soccer", "Ligue 1", "https://example.com/ligue1.png"),
+                        new League("4335", "Spanish La Liga", "Soccer", "La Liga", "https://example.com/laliga.png"),
+                        new League("4336", "Greek Superleague Greece", "Soccer", "", "https://example.com/greek.png"),
+                        new League("4337", "Dutch Eredivisie", "Soccer", "Eredivisie", "https://example.com/eredivisie.png"),
+                        new League("4338", "Belgian Pro League", "Soccer", "Jupiler Pro League", "https://example.com/belgian.png")
                 );
 
                 // Insert leagues into database
                 db.leagueDao().insertLeagues(leagues);
-                runOnUiThread(() -> Toast.makeText(this, "Leagues added to database!", Toast.LENGTH_SHORT).show());
+
+                runOnUiThread(() -> Toast.makeText(this, "Leagues added successfully!", Toast.LENGTH_SHORT).show());
             } catch (Exception e) {
-                Log.e("DB_ERROR", "Error inserting leagues", e);
-                runOnUiThread(() -> Toast.makeText(this, "Error adding leagues", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(this, "Error adding leagues: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         }).start();
     }

@@ -4,30 +4,38 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 public class SearchClubsByLeagueActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
     private EditText leagueNameInput;
-    private SportsApi sportsApi;
-    private List<Club> clubs;
+    private LinearLayout clubsContainer;
+    private List<Club> fetchedClubs = new ArrayList<>();
+    private RequestQueue requestQueue;
+    private AppDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,78 +44,132 @@ public class SearchClubsByLeagueActivity extends AppCompatActivity {
 
         // Initialize UI components
         leagueNameInput = findViewById(R.id.leagueNameInput);
-        recyclerView = findViewById(R.id.recyclerView);
-        Button searchButton = findViewById(R.id.searchButton);
+        clubsContainer = findViewById(R.id.clubsContainer);
+        Button retrieveClubsBtn = findViewById(R.id.searchButton);
+        Button saveToDbButton = findViewById(R.id.saveToDbButton);
 
-        // Initialize API and data structures
-        sportsApi = ApiClient.getRetrofitInstance().create(SportsApi.class);
-        clubs = new ArrayList<>();
+        // Initialize Volley request queue
+        requestQueue = Volley.newRequestQueue(this);
 
-        // Set up RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // Set up search button listener
-        searchButton.setOnClickListener(v -> {
+        // Set up button listeners
+        retrieveClubsBtn.setOnClickListener(v -> {
             String leagueName = leagueNameInput.getText().toString().trim();
             if (!leagueName.isEmpty()) {
-                searchClubsByLeague(leagueName);
+                fetchClubsFromWebService(leagueName);
             } else {
                 Toast.makeText(this, "Please enter a league name", Toast.LENGTH_SHORT).show();
             }
         });
-    }
 
-    private void searchClubsByLeague(String leagueName) {
-        sportsApi.getTeams(leagueName).enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    JsonObject jsonObject = response.body();
-                    JsonArray teams = jsonObject.getAsJsonArray("teams");
-
-                    if (teams != null) {
-                        clubs.clear();
-                        for (JsonElement teamElement : teams) {
-                            JsonObject teamObject = teamElement.getAsJsonObject();
-
-                            // Safely get values, using null checks
-                            String idTeam = teamObject.has("idTeam") && !teamObject.get("idTeam").isJsonNull()
-                                    ? teamObject.get("idTeam").getAsString()
-                                    : "Unknown ID";
-
-                            String name = teamObject.has("strTeam") && !teamObject.get("strTeam").isJsonNull()
-                                    ? teamObject.get("strTeam").getAsString()
-                                    : "Unknown Name";
-
-                            String strLeague = teamObject.has("strLeague") && !teamObject.get("strLeague").isJsonNull()
-                                    ? teamObject.get("strLeague").getAsString()
-                                    : "Unknown League";
-
-                            String logoUrl = teamObject.has("strTeamBadge") && !teamObject.get("strTeamBadge").isJsonNull()
-                                    ? teamObject.get("strTeamBadge").getAsString()
-                                    : null; // Handle missing logo
-
-                            // Add the club to the list
-                            clubs.add(new Club(idTeam, name, strLeague, logoUrl));
-                        }
-
-                        // Update the RecyclerView adapter
-                        recyclerView.setAdapter(new ClubAdapter(clubs));
-                    } else {
-                        Toast.makeText(SearchClubsByLeagueActivity.this, "No teams found!", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Log.e("API_ERROR", "Response failed: Code " + response.code());
-                    Toast.makeText(SearchClubsByLeagueActivity.this, "Failed to retrieve data", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                // Handle failure scenarios
-                Log.e("API_FAILURE", "Error: " + t.getMessage(), t);
-                Toast.makeText(SearchClubsByLeagueActivity.this, "Network error. Please retry.", Toast.LENGTH_SHORT).show();
+        saveToDbButton.setOnClickListener(v -> {
+            if (!fetchedClubs.isEmpty()) {
+                saveClubsToDatabase(fetchedClubs);
+            } else {
+                Toast.makeText(this, "No clubs to save. Perform a search first.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void fetchClubsFromWebService(String leagueName) {
+        String url = "https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l=" + leagueName.replace(" ", "%20");
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                response -> {
+                    try {
+                        JSONArray teamsArray = response.optJSONArray("teams");
+                        if (teamsArray != null) {
+                            fetchedClubs.clear();
+                            clubsContainer.removeAllViews(); // Clear previous clubs
+
+                            for (int i = 0; i < teamsArray.length(); i++) {
+                                JSONObject teamObject = teamsArray.getJSONObject(i);
+
+                                String idTeam = teamObject.optString("idTeam", "Unknown");
+                                String strTeam = teamObject.optString("strTeam", "Unknown");
+                                String strLeague = teamObject.optString("strLeague", "Unknown");
+                                String strTeamBadge = teamObject.optString("strTeamBadge", null);
+
+                                Club club = new Club(idTeam, strTeam, strLeague, strTeamBadge);
+                                fetchedClubs.add(club);
+
+                                // Dynamically add club to the layout
+                                addClubToContainer(club);
+                            }
+
+                            Toast.makeText(SearchClubsByLeagueActivity.this, "Clubs retrieved successfully!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(SearchClubsByLeagueActivity.this, "No clubs found!", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        Log.e("API_ERROR", "Error parsing response: " + e.getMessage(), e);
+                        Toast.makeText(SearchClubsByLeagueActivity.this, "Error parsing data.", Toast.LENGTH_SHORT).show();
+                    }
+                },
+                error -> {
+                    Log.e("API_ERROR", "Volley error: " + error.getMessage(), error);
+                    Toast.makeText(SearchClubsByLeagueActivity.this, "Failed to fetch data. Please try again.", Toast.LENGTH_SHORT).show();
+                });
+
+        // Add the request to the Volley RequestQueue
+        requestQueue.add(jsonObjectRequest);
+    }
+
+    private void addClubToContainer(Club club) {
+        // Create a parent layout for each club
+        LinearLayout clubLayout = new LinearLayout(this);
+        clubLayout.setOrientation(LinearLayout.HORIZONTAL);
+        clubLayout.setPadding(16, 16, 16, 16);
+        clubLayout.setGravity(Gravity.CENTER_VERTICAL);
+        clubLayout.setBackgroundColor(Color.LTGRAY);
+        clubLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+
+        // Club Logo
+        ImageView logo = new ImageView(this);
+        logo.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
+        if (club.strLogo != null && !club.strLogo.isEmpty()) {
+            Glide.with(this).load(club.strLogo).into(logo);
+        } else {
+            logo.setImageResource(R.drawable.placeholder_image);
+        }
+
+        // Club Details
+        LinearLayout detailsLayout = new LinearLayout(this);
+        detailsLayout.setOrientation(LinearLayout.VERTICAL);
+        detailsLayout.setPadding(16, 0, 0, 0);
+
+        TextView nameTextView = new TextView(this);
+        nameTextView.setText(club.name);
+        nameTextView.setTextSize(18);
+        nameTextView.setTextColor(Color.BLACK);
+
+        TextView leagueTextView = new TextView(this);
+        leagueTextView.setText(club.strLeague);
+        leagueTextView.setTextSize(14);
+        leagueTextView.setTextColor(Color.DKGRAY);
+
+        detailsLayout.addView(nameTextView);
+        detailsLayout.addView(leagueTextView);
+
+        // Add logo and details to the parent layout
+        clubLayout.addView(logo);
+        clubLayout.addView(detailsLayout);
+
+        // Add the parent layout to the container
+        clubsContainer.addView(clubLayout);
+    }
+
+    private void saveClubsToDatabase(List<Club> clubs) {
+        new Thread(() -> {
+            try {
+                db.clubDao().insertClubs(clubs);
+                runOnUiThread(() -> Toast.makeText(this, "Clubs saved to database!", Toast.LENGTH_SHORT).show());
+            } catch (Exception e) {
+                Log.e("DB_ERROR", "Error saving clubs to database", e);
+                runOnUiThread(() -> Toast.makeText(this, "Error saving clubs to database", Toast.LENGTH_SHORT).show());
+            }
+        }).start();
     }
 }

@@ -15,10 +15,9 @@ import java.util.List;
 
 public class SearchClubsActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
     private EditText searchInput;
+    private RecyclerView recyclerView;
     private AppDatabase db;
-    private List<Club> clubs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,13 +26,10 @@ public class SearchClubsActivity extends AppCompatActivity {
 
         searchInput = findViewById(R.id.searchInput);
         recyclerView = findViewById(R.id.recyclerView);
-        Button searchButton = findViewById(R.id.searchButton);
-
-        // Initialize database
-        db = AppDatabase.getInstance(getApplicationContext());
-
-        // Set up RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        Button searchButton = findViewById(R.id.searchButton);
+        db = AppDatabase.getInstance(getApplicationContext());
 
         searchButton.setOnClickListener(v -> {
             String query = searchInput.getText().toString().trim();
@@ -47,30 +43,14 @@ public class SearchClubsActivity extends AppCompatActivity {
 
     private void searchClubs(String query) {
         new Thread(() -> {
-            try {
-                // Add wildcard characters for SQL LIKE query
-                String wildcardQuery = "%" + query + "%";
-                Log.d("SEARCH_QUERY", "Searching for clubs with: " + wildcardQuery);
-
-                // Perform the search
-                clubs = db.clubDao().searchClubs(wildcardQuery);
-
-                // Log the results
-                Log.d("SEARCH_RESULTS", "Found clubs: " + (clubs != null ? clubs.size() : 0));
-
-                // Update the RecyclerView on the main thread
-                runOnUiThread(() -> {
-                    if (clubs != null && !clubs.isEmpty()) {
-                        recyclerView.setAdapter(new ClubAdapter(clubs));
-                        Toast.makeText(this, "Clubs found: " + clubs.size(), Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(this, "No clubs found", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } catch (Exception e) {
-                Log.e("DB_ERROR", "Error searching clubs", e);
-                runOnUiThread(() -> Toast.makeText(this, "Error searching for clubs", Toast.LENGTH_SHORT).show());
-            }
+            List<Club> clubs = db.clubDao().searchClubs("%" + query + "%");
+            runOnUiThread(() -> {
+                if (clubs.isEmpty()) {
+                    Toast.makeText(this, "No clubs found", Toast.LENGTH_SHORT).show();
+                } else {
+                    recyclerView.setAdapter(new ClubAdapter(clubs));
+                }
+            });
         }).start();
     }
 }

@@ -11,5 +11,5 @@ public interface SportsApi {
     Call<Object> getLeagues(@Query("c") String country, @Query("s") String sport);
 
     @GET("search_all_teams.php")
-    Call<JsonObject> getTeams(@Query("l") String league);
+    Call<JsonObject> getTeams(@Query("l") String leagueName);
 }

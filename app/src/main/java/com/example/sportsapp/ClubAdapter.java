@@ -34,10 +34,14 @@ public class ClubAdapter extends RecyclerView.Adapter<ClubAdapter.ClubViewHolder
         holder.nameTextView.setText(club.name);
         holder.leagueTextView.setText(club.strLeague);
 
-        if (club.logoUrl != null) {
-            Glide.with(holder.itemView.getContext()).load(club.logoUrl).into(holder.logoImageView);
+        if (club.strLogo != null && !club.strLogo.isEmpty()) {
+            Glide.with(holder.itemView.getContext())
+                    .load(club.strLogo)
+                    .placeholder(R.drawable.placeholder_image) // Placeholder while loading
+                    .error(R.drawable.error_image) // Error fallback
+                    .into(holder.logoImageView);
         } else {
-            holder.logoImageView.setImageResource(R.drawable.placeholder_image); // Placeholder image
+            holder.logoImageView.setImageResource(R.drawable.placeholder_image); // Default placeholder
         }
     }
 

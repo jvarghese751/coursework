@@ -14,4 +14,7 @@ public interface LeagueDao {
 
     @Query("SELECT * FROM leagues")
     List<League> getAllLeagues();
+
+    @Query("SELECT * FROM leagues WHERE name LIKE :query")
+    List<League> searchLeagues(String query);
 }

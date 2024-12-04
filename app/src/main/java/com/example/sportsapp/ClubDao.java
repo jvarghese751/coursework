@@ -15,6 +15,6 @@ public interface ClubDao {
     @Query("SELECT * FROM clubs")
     List<Club> getAllClubs();
 
-    @Query("SELECT * FROM clubs WHERE name LIKE :query OR strLeague LIKE :query")
+    @Query("SELECT * FROM clubs WHERE name LIKE :query")
     List<Club> searchClubs(String query);
 }

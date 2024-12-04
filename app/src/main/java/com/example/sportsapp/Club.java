@@ -8,16 +8,37 @@ import androidx.room.PrimaryKey;
 public class Club {
     @PrimaryKey
     @NonNull
-    public String id; // Unique ID for the club
+    public String idTeam; // Unique ID for the team
 
-    public String name; // Name of the club
-    public String strLeague; // League name the club belongs to
-    public String strLogo; // URL of the club's logo
+    public String name;
+    public String strTeamShort;
+    public String strAlternate;
+    public String intFormedYear;
+    public String strLeague;
+    public String idLeague;
+    public String strStadium;
+    public String strKeywords;
+    public String strStadiumLocation;
+    public String intStadiumCapacity;
+    public String strWebsite;
+    public String strTeamLogo;
 
-    public Club(@NonNull String id, String name, String strLeague, String strLogo) {
-        this.id = id;
+    public Club(@NonNull String idTeam, String name, String strTeamShort, String strAlternate,
+                String intFormedYear, String strLeague, String idLeague, String strStadium,
+                String strKeywords, String strStadiumLocation, String intStadiumCapacity,
+                String strWebsite, String strTeamLogo) {
+        this.idTeam = idTeam;
         this.name = name;
+        this.strTeamShort = strTeamShort;
+        this.strAlternate = strAlternate;
+        this.intFormedYear = intFormedYear;
         this.strLeague = strLeague;
-        this.strLogo = strLogo;
+        this.idLeague = idLeague;
+        this.strStadium = strStadium;
+        this.strKeywords = strKeywords;
+        this.strStadiumLocation = strStadiumLocation;
+        this.intStadiumCapacity = intStadiumCapacity;
+        this.strWebsite = strWebsite;
+        this.strTeamLogo = strTeamLogo;
     }
 }

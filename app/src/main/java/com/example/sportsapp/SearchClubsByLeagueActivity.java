@@ -5,8 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -82,103 +84,112 @@ public class SearchClubsByLeagueActivity extends AppCompatActivity {
                         JSONArray teamsArray = response.optJSONArray("teams");
                         if (teamsArray != null) {
                             fetchedClubs.clear();
-                            clubsContainer.removeAllViews(); // Clear previous clubs
+                            clubsContainer.removeAllViews();
 
                             for (int i = 0; i < teamsArray.length(); i++) {
                                 JSONObject teamObject = teamsArray.getJSONObject(i);
 
                                 String idTeam = teamObject.optString("idTeam", "Unknown");
-                                String strTeam = teamObject.optString("strTeam", "Unknown");
+                                String name = teamObject.optString("strTeam", "Unknown");
+                                String strTeamShort = teamObject.optString("strTeamShort", "N/A");
+                                String strAlternate = teamObject.optString("strAlternate", "N/A");
+                                String intFormedYear = teamObject.optString("intFormedYear", "N/A");
                                 String strLeague = teamObject.optString("strLeague", "Unknown");
-                                String strTeamBadge = teamObject.optString("strTeamBadge", null);
+                                String idLeague = teamObject.optString("idLeague", "N/A");
+                                String strStadium = teamObject.optString("strStadium", "N/A");
+                                String strKeywords = teamObject.optString("strKeywords", "N/A");
+                                String strStadiumLocation = teamObject.optString("strStadiumLocation", "N/A");
+                                String intStadiumCapacity = teamObject.optString("intStadiumCapacity", "N/A");
+                                String strWebsite = teamObject.optString("strWebsite", "N/A");
+                                String strTeamLogo = teamObject.optString("strTeamLogo", null);
 
-                                Club club = new Club(idTeam, strTeam, strLeague, strTeamBadge);
+                                Club club = new Club(idTeam, name, strTeamShort, strAlternate, intFormedYear,
+                                        strLeague, idLeague, strStadium, strKeywords, strStadiumLocation,
+                                        intStadiumCapacity, strWebsite, strTeamLogo);
                                 fetchedClubs.add(club);
 
-                                // Dynamically add club to the layout
                                 addClubToContainer(club);
                             }
 
-                            Toast.makeText(SearchClubsByLeagueActivity.this, "Clubs retrieved successfully!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Clubs retrieved successfully!", Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(SearchClubsByLeagueActivity.this, "No clubs found!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "No clubs found!", Toast.LENGTH_SHORT).show();
                         }
                     } catch (Exception e) {
                         Log.e("API_ERROR", "Error parsing response: " + e.getMessage(), e);
-                        Toast.makeText(SearchClubsByLeagueActivity.this, "Error parsing data.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Error parsing data.", Toast.LENGTH_SHORT).show();
                     }
                 },
                 error -> {
                     Log.e("API_ERROR", "Volley error: " + error.getMessage(), error);
-                    Toast.makeText(SearchClubsByLeagueActivity.this, "Failed to fetch data. Please try again.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Failed to fetch data. Please try again.", Toast.LENGTH_SHORT).show();
                 });
 
-        // Add the request to the Volley RequestQueue
         requestQueue.add(jsonObjectRequest);
     }
 
     private void addClubToContainer(Club club) {
-        // Create a parent layout for each club
         LinearLayout clubLayout = new LinearLayout(this);
-        clubLayout.setOrientation(LinearLayout.HORIZONTAL);
+        clubLayout.setOrientation(LinearLayout.VERTICAL);
         clubLayout.setPadding(16, 16, 16, 16);
-        clubLayout.setGravity(Gravity.CENTER_VERTICAL);
         clubLayout.setBackgroundColor(Color.LTGRAY);
         clubLayout.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         ));
 
-        // Club Logo
-        ImageView logo = new ImageView(this);
-        logo.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
-        if (club.strLogo != null && !club.strLogo.isEmpty()) {
-            Glide.with(this).load(club.strLogo).into(logo);
+        // Add club logo
+        ImageView logoImageView = new ImageView(this);
+        logoImageView.setLayoutParams(new LinearLayout.LayoutParams(200, 200));
+        if (club.strTeamLogo != null) {
+            Glide.with(this).load(club.strTeamLogo).into(logoImageView);
         } else {
-            logo.setImageResource(R.drawable.placeholder_image);
+            logoImageView.setImageResource(R.drawable.placeholder_image); // Placeholder
         }
+        clubLayout.addView(logoImageView);
 
-        // Club Details
-        LinearLayout detailsLayout = new LinearLayout(this);
-        detailsLayout.setOrientation(LinearLayout.VERTICAL);
-        detailsLayout.setPadding(16, 0, 0, 0);
+        // Add dynamic fields
+        clubLayout.addView(createTextView("ID Team: " + club.idTeam));
+        clubLayout.addView(createTextView("Name: " + club.name));
+        clubLayout.addView(createTextView("Short Name: " + club.strTeamShort));
+        clubLayout.addView(createTextView("Alternate Name: " + club.strAlternate));
+        clubLayout.addView(createTextView("Formed Year: " + club.intFormedYear));
+        clubLayout.addView(createTextView("League: " + club.strLeague));
+        clubLayout.addView(createTextView("League ID: " + club.idLeague));
+        clubLayout.addView(createTextView("Stadium: " + club.strStadium));
+        clubLayout.addView(createTextView("Keywords: " + club.strKeywords));
+        clubLayout.addView(createTextView("Stadium Location: " + club.strStadiumLocation));
+        clubLayout.addView(createTextView("Stadium Capacity: " + club.intStadiumCapacity));
 
-        TextView nameTextView = new TextView(this);
-        nameTextView.setText(club.name);
-        nameTextView.setTextSize(18);
-        nameTextView.setTextColor(Color.BLACK);
-
-        TextView leagueTextView = new TextView(this);
-        leagueTextView.setText(club.strLeague);
-        leagueTextView.setTextSize(14);
-        leagueTextView.setTextColor(Color.DKGRAY);
-
-        detailsLayout.addView(nameTextView);
-        detailsLayout.addView(leagueTextView);
-
-        // Add logo and details to the parent layout
-        clubLayout.addView(logo);
-        clubLayout.addView(detailsLayout);
+        // Add website with a clickable link
+        TextView websiteTextView = createTextView("Website: " + club.strWebsite);
+        websiteTextView.setTextColor(Color.BLUE);
+        websiteTextView.setOnClickListener(v -> {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://" + club.strWebsite));
+            startActivity(browserIntent);
+        });
+        clubLayout.addView(websiteTextView);
 
         // Add the parent layout to the container
         clubsContainer.addView(clubLayout);
     }
 
+    private TextView createTextView(String text) {
+        TextView textView = new TextView(this);
+        textView.setText(text);
+        textView.setTextSize(14);
+        textView.setTextColor(Color.BLACK);
+        textView.setPadding(0, 8, 0, 8);
+        return textView;
+    }
+
     private void saveClubsToDatabase(List<Club> clubs) {
         new Thread(() -> {
-            try {
-                if (db != null) {
-                    db.clubDao().insertClubs(clubs); // Ensure db is not null
-                    runOnUiThread(() -> Toast.makeText(this, "Clubs saved to database successfully!", Toast.LENGTH_SHORT).show());
-                } else {
-                    runOnUiThread(() -> Toast.makeText(this, "Database instance is null.", Toast.LENGTH_SHORT).show());
-                }
-            } catch (Exception e) {
-                Log.e("DB_ERROR", "Error saving clubs: " + e.getMessage(), e);
-                runOnUiThread(() -> Toast.makeText(this, "Error saving to database: " + e.getMessage(), Toast.LENGTH_LONG).show());
-            }
+            db.clubDao().insertClubs(clubs);
+            runOnUiThread(() -> Toast.makeText(this, "Clubs saved to database successfully!", Toast.LENGTH_SHORT).show());
         }).start();
     }
+
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {

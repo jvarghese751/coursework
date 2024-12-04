@@ -34,9 +34,9 @@ public class ClubAdapter extends RecyclerView.Adapter<ClubAdapter.ClubViewHolder
         holder.nameTextView.setText(club.name);
         holder.leagueTextView.setText(club.strLeague);
 
-        if (club.strLogo != null && !club.strLogo.isEmpty()) {
+        if (club.strTeamLogo != null && !club.strTeamLogo.isEmpty()) {
             Glide.with(holder.itemView.getContext())
-                    .load(club.strLogo)
+                    .load(club.strTeamLogo)
                     .placeholder(R.drawable.placeholder_image) // Placeholder while loading
                     .error(R.drawable.error_image) // Error fallback
                     .into(holder.logoImageView);

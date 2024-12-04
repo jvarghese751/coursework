@@ -34,9 +34,9 @@ public class LeagueAdapter extends RecyclerView.Adapter<LeagueAdapter.LeagueView
         holder.nameTextView.setText(league.name);
         holder.sportTextView.setText(league.sport);
 
-        if (league.strLogo != null) {
+        if (league.logo != null) {
             Glide.with(holder.itemView.getContext())
-                    .load(league.strLogo)
+                    .load(league.logo)
                     .placeholder(R.drawable.placeholder_image)
                     .error(R.drawable.error_image)
                     .into(holder.logoImageView);
